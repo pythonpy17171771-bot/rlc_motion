@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RLC 회로 전류 그래프</title>
+
+<style>
+
+body{
+    margin:0;
+    background:#0f172a;
+    color:white;
+    font-family:Arial,sans-serif;
+}
+
+h1{
+    text-align:center;
+    margin-top:20px;
+    color:#38bdf8;
+    font-size:50px;
+}
+
+p{
+    text-align:center;
+    color:#cbd5e1;
+    font-size:22px;
+}
+
+canvas{
+    display:block;
+    margin:auto;
+    margin-top:30px;
+    background:#111827;
+    border:2px solid #334155;
+    border-radius:20px;
+}
+
+.formula{
+    text-align:center;
+    margin-top:30px;
+    color:#f472b6;
+    font-size:36px;
+    font-weight:bold;
+}
+
+.info{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+    margin-top:30px;
+    background:#111827;
+    padding:30px;
+    border-radius:20px;
+    font-size:22px;
+    line-height:1.8;
+    color:#e2e8f0;
+}
+
+.highlight{
+    color:#facc15;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>RLC 회로에서의 전류 진동</h1>
+
+<p>
+전류의 세기는 시간에 따라 진동하면서 점점 감소한다.
+</p>
+
+<div class="formula">
+    I(t)=I₀e<sup>-Rt/2L</sup>cos(ωt+φ)
+</div>
+
+<canvas id="graphCanvas" width="1400" height="700"></canvas>
+
+<div class="info">
+
+<p>
+RLC 회로에서는 축전기와 코일 사이에서 전류가 반복적으로 흐른다.
+</p>
+
+<p>
+하지만 저항(R) 때문에 에너지가 감소하여
+전류의 진폭이 점점 작아진다.
+</p>
+
+<p>
+즉,
+<span class="highlight">
+전류의 세기는 감쇠 진동 형태를 가진다.
+</span>
+</p>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("graphCanvas");
+const ctx = canvas.getContext("2d");
+
+let time = 0;
+
+function drawAxes(){
+
+    // x축
+
+    ctx.beginPath();
+    ctx.moveTo(100,350);
+    ctx.lineTo(1300,350);
+
+    ctx.strokeStyle="#94a3b8";
+    ctx.lineWidth=3;
+    ctx.stroke();
+
+    // y축
+
+    ctx.beginPath();
+    ctx.moveTo(100,100);
+    ctx.lineTo(100,600);
+
+    ctx.stroke();
+
+    // 축 이름
+
+    ctx.fillStyle="white";
+    ctx.font="28px Arial";
+
+    ctx.fillText("시간",1240,390);
+    ctx.fillText("전류",40,120);
+
+}
+
+function drawGraph(){
+
+    ctx.beginPath();
+
+    for(let i=0;i<1100;i++){
+
+        let x = 120 + i;
+
+        // 감쇠 진동 함수
+
+        let current =
+            170 *
+            Math.exp(-0.0025*i)
+            *
+            Math.cos(0.045*i);
+
+        let y = 350 - current;
+
+        if(i===0){
+            ctx.moveTo(x,y);
+        }
+        else{
+            ctx.lineTo(x,y);
+        }
+
+    }
+
+    ctx.strokeStyle="#f472b6";
+    ctx.lineWidth=4;
+    ctx.stroke();
+
+}
+
+function drawEnvelope(){
+
+    // 위쪽 감쇠 곡선
+
+    ctx.beginPath();
+
+    for(let i=0;i<1100;i++){
+
+        let x = 120 + i;
+
+        let y =
+            350
+            -
+            170*Math.exp(-0.0025*i);
+
+        if(i===0){
+            ctx.moveTo(x,y);
+        }
+        else{
+            ctx.lineTo(x,y);
+        }
+
+    }
+
+    ctx.strokeStyle="#38bdf8";
+    ctx.lineWidth=2;
+    ctx.stroke();
+
+    // 아래쪽 감쇠 곡선
+
+    ctx.beginPath();
+
+    for(let i=0;i<1100;i++){
+
+        let x = 120 + i;
+
+        let y =
+            350
+            +
+            170*Math.exp(-0.0025*i);
+
+        if(i===0){
+            ctx.moveTo(x,y);
+        }
+        else{
+            ctx.lineTo(x,y);
+        }
+
+    }
+
+    ctx.strokeStyle="#38bdf8";
+    ctx.lineWidth=2;
+    ctx.stroke();
+
+}
+
+function animate(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawAxes();
+    drawEnvelope();
+    drawGraph();
+
+    // 움직이는 점
+
+    let i = time % 1100;
+
+    let current =
+        170 *
+        Math.exp(-0.0025*i)
+        *
+        Math.cos(0.045*i);
+
+    let pointX = 120 + i;
+    let pointY = 350 - current;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        pointX,
+        pointY,
+        10,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fillStyle="#facc15";
+    ctx.fill();
+
+    // 현재 전류값 표시
+
+    ctx.fillStyle="white";
+    ctx.font="30px Arial";
+
+    ctx.fillText(
+        "현재 전류 세기: "
+        + current.toFixed(2),
+        900,
+        100
+    );
+
+    time += 2;
+
+    // 10초마다 리셋
+
+    if(time > 1100){
+        time = 0;
+    }
+
+    requestAnimationFrame(animate);
+
+}
+
+animate();
+
+</script>
+
+</body>
+</html>
