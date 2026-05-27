@@ -13,6 +13,6 @@ with open("index.html", "r", encoding="utf-8") as f:
 # html 실행
 components.html(
     html_code,
-    height=2500,
+    height=1500,
     scrolling=True
 )
